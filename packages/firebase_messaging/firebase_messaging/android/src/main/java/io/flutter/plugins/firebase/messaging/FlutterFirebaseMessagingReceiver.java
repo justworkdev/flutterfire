@@ -78,14 +78,19 @@ public class FlutterFirebaseMessagingReceiver extends BroadcastReceiver {
                 new Intent(context, FlutterFirebaseMessagingBackgroundService.class);
 
             Parcel parcel = Parcel.obtain();
-            remoteMessage.writeToParcel(parcel, 0);
-            // We write to parcel using RemoteMessage.writeToParcel() to pass entire RemoteMessage
-            // as array
-            // of bytes
-            // Which can be read using RemoteMessage.createFromParcel(parcel) API
-            onBackgroundMessageIntent.putExtra(
-                FlutterFirebaseMessagingUtils.EXTRA_REMOTE_MESSAGE, parcel.marshall());
-
+            // CWE-404 ここから
+            try {
+                remoteMessage.writeToParcel(parcel, 0);
+                // We write to parcel using RemoteMessage.writeToParcel() to pass entire RemoteMessage
+                // as array
+                // of bytes
+                // Which can be read using RemoteMessage.createFromParcel(parcel) API
+                onBackgroundMessageIntent.putExtra(
+                    FlutterFirebaseMessagingUtils.EXTRA_REMOTE_MESSAGE, parcel.marshall());
+            } finally {
+                parcel.recycle();
+            }
+            // CWE-404 ここまで
             FlutterFirebaseMessagingBackgroundService.enqueueMessageProcessing(
                 context,
                 onBackgroundMessageIntent,
